@@ -1,0 +1,89 @@
+part 1:
+
+
+from telegram.ext import Application, MessageHandler, filters, ContextTypes
+from telegram import Update
+
+# Global variable to store the latest Telegram message
+latest_template_text = ""
+
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    global latest_template_text
+    latest_template_text = update.message.text
+    print("Received Telegram Message:")
+    print(latest_template_text)
+
+# Run the bot and store incoming messages
+def start_bot_listener(BOT_TOKEN):
+    app = Application.builder().token(BOT_TOKEN).build()
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    print("Telegram Bot is listening...")
+    app.run_polling()
+
+
+
+part 2
+
+from time import sleep
+from your_bot_script import latest_template_text  # if in another file
+import re
+
+def wait_for_template(timeout=60):
+    for i in range(timeout):
+        if latest_template_text.strip():
+            return latest_template_text
+        print("Waiting for message...")
+        sleep(1)
+    raise TimeoutError("No message received in time.")
+
+def extract_data(template):
+    HEIGHT = re.search(r"la hauteur\s*:\s*(\d+)", template).group(1)
+    WIDTH = re.search(r"la largeur\s*:\s*(\d+)", template).group(1)
+    LENGTH = re.search(r"la longueur\s*:\s*(\d+)", template).group(1)
+    PIECES = re.search(r"le colis\s*:\s*(\d+)", template).group(1)
+    WEIGHT = re.search(r"le poids\s*:\s*(\d+)", template).group(1)
+
+    parts = re.split(r'Mittente\s*:\s*|Destinatario\s*:\s*', template.strip())
+    sender = parts[1].strip().split('\n')
+    receiver = parts[2].strip().split('\n')
+
+    SENDER_NAME = sender[0].strip()
+    SENDER_ADDRESS = sender[1].strip()
+    SENDER_CITY_ZIP = sender[2].strip()
+    SENDER_PHONE = sender[3].strip()
+
+    RECEIVER_NAME = receiver[0].strip()
+    RECEIVER_ADDRESS = receiver[1].strip()
+    RECEIVER_CITY_ZIP = receiver[2].strip()
+    RECEIVER_PHONE = receiver[3].strip()
+
+    LOCALITA_KEYWORD = extract_localita_keyword(SENDER_ADDRESS)
+
+    return {
+        "HEIGHT": HEIGHT,
+        "WIDTH": WIDTH,
+        "LENGTH": LENGTH,
+        "PIECES": PIECES,
+        "WEIGHT": WEIGHT,
+        "SENDER_NAME": SENDER_NAME,
+        "SENDER_ADDRESS": SENDER_ADDRESS,
+        "SENDER_CITY_ZIP": SENDER_CITY_ZIP,
+        "SENDER_PHONE": SENDER_PHONE,
+        "RECEIVER_NAME": RECEIVER_NAME,
+        "RECEIVER_ADDRESS": RECEIVER_ADDRESS,
+        "RECEIVER_CITY_ZIP": RECEIVER_CITY_ZIP,
+        "RECEIVER_PHONE": RECEIVER_PHONE,
+        "LOCALITA_KEYWORD": LOCALITA_KEYWORD
+    }
+
+def extract_localita_keyword(address):
+    match = re.search(r'\b[Vv]ia\b\s+([^\d,]+)', address)
+    if match:
+        words = match.group(1).strip().split()
+        return words[0].upper() if words else ""
+    return ""
+
+# === Run this in main ===
+template = wait_for_template()
+parsed_values = extract_data(template)
+print(parsed_values)
