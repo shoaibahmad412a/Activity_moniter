@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Activity Manager{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        {% if title == 'Create Activity' %}
+                            <i class="fas fa-plus me-2"></i>{{ title }}
+                        {% else %}
+                            <i class="fas fa-edit me-2"></i>{{ title }}
+                        {% endif %}
+                    </h4>
+                </div>
+
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+                                    {{ field.label }} {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <div class="form-text text-muted">{{ field.help_text }}</div>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <div class="text-danger small">
+                                        <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+
+                        <div class="text-end">
+                            <a href="{% url 'activity_list' %}" class="btn btn-outline-secondary me-2">
+                                <i class="fas fa-arrow-left me-1"></i>Back to List
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>
+                                {% if title == 'Create Activity' %}Create{% else %}Update{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                {% if activity %}
+                <div class="card-footer bg-light small text-muted d-flex justify-content-between">
+                    <span><i class="fas fa-calendar me-1"></i>Created: {{ activity.created_at|date:"M d, Y H:i" }}</span>
+                    <span><i class="fas fa-clock me-1"></i>Updated: {{ activity.updated_at|date:"M d, Y H:i" }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control, .form-select {
+        border-radius: 12px;
+        padding: 10px 14px;
+        border: 2px solid #e9ecef;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.2);
+    }
+    .btn {
+        border-radius: 10px;
+        font-weight: 500;
+        padding: 10px 22px;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Live validation error remover
+        document.querySelectorAll('input, textarea, select').forEach(el => {
+            el.addEventListener('input', () => {
+                if (el.classList.contains('is-invalid')) {
+                    el.classList.remove('is-invalid');
+                }
+            });
+        });
+
+        // Character count for textareas
+        const textAreas = document.querySelectorAll('textarea');
+        textAreas.forEach(area => {
+            const maxLength = area.getAttribute('maxlength') || 1000;
+            const counter = document.createElement('div');
+            counter.className = 'form-text text-muted text-end small mt-1';
+            area.parentNode.appendChild(counter);
+
+            const updateCounter = () => {
+                const len = area.value.length;
+                counter.textContent = `${len} / ${maxLength} characters`;
+            };
+            area.addEventListener('input', updateCounter);
+            updateCounter();
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Categories - Activity Manager{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">
+                <i class="fas fa-tags text-primary me-2"></i>Your Categories
+            </h3>
+            <a href="{% url 'category_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i>Add Category
+            </a>
+        </div>
+    </div>
+
+    {% if categories %}
+        <div class="row">
+            {% for category in categories %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h5 class="fw-bold d-flex align-items-center mb-2">
+                                <span class="badge rounded-circle me-2" style="width: 14px; height: 14px; background-color: {{ category.color }};"></span>
+                                {{ category.name }}
+                            </h5>
+                            {% if category.description %}
+                                <p class="text-muted small">{{ category.description }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-light d-flex justify-content-between align-items-center small text-muted">
+                            <span><i class="fas fa-list-ul me-1"></i>{{ category.activity_count }} Activities</span>
+                            <span class="text-truncate" style="max-width: 100px;">
+                                <i class="fas fa-calendar-alt me-1"></i>{{ category.created_at|date:"M d, Y" }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card shadow-sm border-0 text-center py-5 bg-light">
+            <div class="card-body">
+                <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No categories found</h5>
+                <p class="text-muted">You haven't created any categories yet.</p>
+                <a href="{% url 'category_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Create Your First Category
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .btn {
+        border-radius: 10px;
+        font-weight: 500;
+        padding: 10px 22px;
+    }
+    .badge.rounded-circle {
+        display: inline-block;
+        border-radius: 50%;
+    }
+</style>
+{% endblock %}

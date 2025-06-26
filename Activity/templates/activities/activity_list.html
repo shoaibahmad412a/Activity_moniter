@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block title %}Activities - Activity Manager{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold"><i class="fas fa-list me-2"></i>Your Activities</h3>
+        <a href="{% url 'activity_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>New Activity
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <form method="get" class="row g-3 align-items-end mb-4">
+        <div class="col-md-3">
+            <label for="category" class="form-label">Category</label>
+            <select name="category" id="category" class="form-select">
+                <option value="">All Categories</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}" {% if category.id|stringformat:"s" == current_category %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label for="status" class="form-label">Status</label>
+            <select name="status" id="status" class="form-select">
+                <option value="">All Statuses</option>
+                <option value="planned" {% if current_status == 'planned' %}selected{% endif %}>Planned</option>
+                <option value="in_progress" {% if current_status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                <option value="completed" {% if current_status == 'completed' %}selected{% endif %}>Completed</option>
+                <option value="cancelled" {% if current_status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label for="priority" class="form-label">Priority</label>
+            <select name="priority" id="priority" class="form-select">
+                <option value="">All Priorities</option>
+                <option value="low" {% if current_priority == 'low' %}selected{% endif %}>Low</option>
+                <option value="medium" {% if current_priority == 'medium' %}selected{% endif %}>Medium</option>
+                <option value="high" {% if current_priority == 'high' %}selected{% endif %}>High</option>
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label for="search" class="form-label">Search</label>
+            <input type="text" name="search" id="search" class="form-control" placeholder="Search title or description" value="{{ search_query }}">
+        </div>
+
+        <div class="col-12 text-end">
+            <button type="submit" class="btn btn-outline-primary">
+                <i class="fas fa-filter me-1"></i>Filter
+            </button>
+            <a href="{% url 'activity_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-times me-1"></i>Reset
+            </a>
+        </div>
+    </form>
+
+    <!-- Activity List -->
+    {% if activities %}
+        <div class="list-group shadow-sm">
+            {% for activity in activities %}
+                <a href="{% url 'activity_detail' activity.pk %}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ activity.title }}</h5>
+                        <small class="text-muted">{{ activity.start_date|date:"M d, Y" }}</small>
+                    </div>
+                    <p class="mb-1 text-muted small">{{ activity.description|truncatewords:20 }}</p>
+                    <div class="d-flex justify-content-between small">
+                        <span class="badge bg-light text-dark border">
+                            <i class="fas fa-tag me-1"></i>{{ activity.category.name }}
+                        </span>
+                        <span class="badge 
+                            {% if activity.priority == 'high' %}bg-danger
+                            {% elif activity.priority == 'medium' %}bg-warning
+                            {% else %}bg-success{% endif %}">
+                            {{ activity.get_priority_display }}
+                        </span>
+                        <span class="badge 
+                            {% if activity.status == 'completed' %}bg-success
+                            {% elif activity.status == 'in_progress' %}bg-warning
+                            {% elif activity.status == 'cancelled' %}bg-secondary
+                            {% else %}bg-info{% endif %}">
+                            {{ activity.get_status_display }}
+                        </span>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if activities.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ activities.previous_page_number }}&category={{ current_category }}&status={{ current_status }}&priority={{ current_priority }}&search={{ search_query }}">Previous</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                {% endif %}
+
+                <li class="page-item disabled"><span class="page-link">Page {{ activities.number }} of {{ activities.paginator.num_pages }}</span></li>
+
+                {% if activities.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ activities.next_page_number }}&category={{ current_category }}&status={{ current_status }}&priority={{ current_priority }}&search={{ search_query }}">Next</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">Next</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% else %}
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle me-2"></i>No activities found. Try adjusting the filters or <a href="{% url 'activity_create' %}">create a new one</a>.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
