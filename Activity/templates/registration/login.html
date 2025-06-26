@@ -1,3 +1,6 @@
+
+
+{% load form_extras %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -64,6 +67,9 @@
         .login-links a:hover {
             text-decoration: underline;
         }
+        .input-group-text i {
+    font-size: 1rem;
+}
     </style>
 </head>
 <body>
@@ -84,26 +90,35 @@
             
             <form method="post">
                 {% csrf_token %}
-                <div class="mb-3">
-                    <label for="{{ form.username.id_for_label }}" class="form-label">
-                        <i class="fas fa-user me-2"></i>Username
-                    </label>
-                    {{ form.username }}
-                    {% if form.username.errors %}
-                        <div class="text-danger small">{{ form.username.errors }}</div>
-                    {% endif %}
-                </div>
-                
-                <div class="mb-3">
-                    <label for="{{ form.password.id_for_label }}" class="form-label">
-                        <i class="fas fa-lock me-2"></i>Password
-                    </label>
-                    {{ form.password }}
-                    {% if form.password.errors %}
-                        <div class="text-danger small">{{ form.password.errors }}</div>
-                    {% endif %}
-                </div>
-                
+<div class="mb-4">
+    <label for="{{ form.username.id_for_label }}" class="form-label fw-semibold">
+        Username
+    </label>
+    {{ form.username|add_class:"form-control" }}
+    {% if form.username.errors %}
+        <div class="text-danger small mt-1">
+            <i class="fas fa-exclamation-circle me-1"></i>{{ form.username.errors.0 }}
+        </div>
+    {% endif %}
+</div>
+<div class="mb-4 position-relative">
+    <label for="{{ form.password.id_for_label }}" class="form-label fw-semibold">Password</label>
+    
+    <div class="position-relative">
+        {{ form.password|add_class:"form-control pe-5" }}
+        <span class="position-absolute top-50 end-0 translate-middle-y me-3" style="cursor: pointer;" onclick="togglePassword(this)">
+            <i class="fas fa-eye text-muted"></i>
+        </span>
+    </div>
+
+    {% if form.password.errors %}
+        <div class="text-danger small mt-1">
+            <i class="fas fa-exclamation-circle me-1"></i>{{ form.password.errors.0 }}
+        </div>
+    {% endif %}
+</div>
+
+
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-sign-in-alt me-2"></i>Sign In
                 </button>
@@ -116,6 +131,21 @@
         </div>
     </div>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"
+    
+    
+    ></script>
+
+    <script>
+    function togglePassword(toggleEl) {
+        const input = toggleEl.parentElement.querySelector('input');
+        const icon = toggleEl.querySelector('i');
+        const type = input.type === 'password' ? 'text' : 'password';
+        input.type = type;
+        icon.classList.toggle('fa-eye');
+        icon.classList.toggle('fa-eye-slash');
+    }
+</script>
+
 </body>
 </html>

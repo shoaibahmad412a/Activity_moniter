@@ -55,12 +55,12 @@ def activity_list(request):
     activities = Activity.objects.filter(user=request.user)
     
     # Filtering
-    category_filter = request.GET.get('category')
-    status_filter = request.GET.get('status')
-    priority_filter = request.GET.get('priority')
-    search = request.GET.get('search')
-    
-    if category_filter:
+    category_filter = request.GET.get('category') or ""
+    status_filter = request.GET.get('status') or ""
+    priority_filter = request.GET.get('priority') or ""
+    search = request.GET.get('search') or ""
+
+    if category_filter.isdigit():
         activities = activities.filter(category_id=category_filter)
     if status_filter:
         activities = activities.filter(status=status_filter)
@@ -72,7 +72,7 @@ def activity_list(request):
         )
     
     # Pagination
-    paginator = Paginator(activities, 10)
+    paginator = Paginator(activities, 9)
     page = request.GET.get('page')
     activities = paginator.get_page(page)
     
