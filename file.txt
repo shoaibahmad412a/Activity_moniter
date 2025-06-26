@@ -1,0 +1,240 @@
+import re
+
+# === Paste your input template here ===
+template = """
+ la hauteur : 50
+ la largeur: 40
+la longueur: 40
+le colis: 2
+le poids:1000
+
+Mittente :
+Saliha moujahed 
+Via Sant’Andrea 40 campli 
+Teramo 64012 
++39 371 477 3249
+Destinatario :
+Berrefas saadia 
+Via fiume 3/F carpaneto 
+Piacentino 29013 
++39 334 237 3888
+"""
+
+# === Extract Shipment Info ===
+HEIGHT = re.search(r"la hauteur\s*:\s*(\d+)", template).group(1)
+WIDTH = re.search(r"la largeur\s*:\s*(\d+)", template).group(1)
+LENGTH = re.search(r"la longueur\s*:\s*(\d+)", template).group(1)
+PIECES = re.search(r"le colis\s*:\s*(\d+)", template).group(1)
+WEIGHT = re.search(r"le poids\s*:\s*(\d+)", template).group(1)
+
+# === Split the rest of the template ===
+parts = re.split(r'Mittente\s*:\s*|Destinatario\s*:\s*', template.strip())
+sender_block = parts[1].strip().split('\n')
+receiver_block = parts[2].strip().split('\n')
+
+# === Extract Sender Details ===
+SENDER_NAME = sender_block[0].strip()
+SENDER_ADDRESS = sender_block[1].strip()
+SENDER_CITY_ZIP = sender_block[2].strip()
+SENDER_PHONE = sender_block[3].strip()
+
+# === Extract Receiver Details ===
+RECEIVER_NAME = receiver_block[0].strip()
+RECEIVER_ADDRESS = receiver_block[1].strip()
+RECEIVER_CITY_ZIP = receiver_block[2].strip()
+RECEIVER_PHONE = receiver_block[3].strip()
+
+
+# === Extract first 4 words after 'Via' from sender address ===
+def extract_localita_keyword(address):
+    match = re.search(r'\b[Vv]ia\b\s+([^\d,]+)', address)
+    if match:
+        words = match.group(1).strip().split()
+        return words[0].upper() if words else ""
+    return ""
+# You can choose sender or receiver here
+LOCALITA_KEYWORD = extract_localita_keyword(SENDER_ADDRESS)
+
+'''
+# === Print to verify ===
+print(f"HEIGHT = \"{HEIGHT}\"")
+print(f"WIDTH = \"{WIDTH}\"")
+print(f"LENGTH = \"{LENGTH}\"")
+print(f"PIECES = \"{PIECES}\"")
+print(f"WEIGHT = \"{WEIGHT}\"")
+
+print(f"SENDER_NAME = \"{SENDER_NAME}\"")
+print(f"SENDER_ADDRESS = \"{SENDER_ADDRESS}\"")
+print(f"SENDER_CITY_ZIP = \"{SENDER_CITY_ZIP}\"")
+print(f"SENDER_PHONE = \"{SENDER_PHONE}\"")
+
+print(f"RECEIVER_NAME = \"{RECEIVER_NAME}\"")
+print(f"RECEIVER_ADDRESS = \"{RECEIVER_ADDRESS}\"")
+print(f"RECEIVER_CITY_ZIP = \"{RECEIVER_CITY_ZIP}\"")
+print(f"RECEIVER_PHONE = \"{RECEIVER_PHONE}\"")
+'''
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+import time
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+# ========== Credentials ==========
+USERNAME = "hamsi2021"
+PASSWORD = "1234"
+
+# ========== Shipment Values ==========
+HEIGHT = "50"
+LENGTH = "40"
+WIDTH = "40"
+PIECES = "2"
+WEIGHT = "10000"
+
+# ========== Location Values ==========
+DEST_COUNTRY = "ITALIA"
+DEST_ZIP = "64012"
+DEP_ZIP = "40033"
+
+# ========== Sender Details ==========
+SENDER_NAME = "Gougas Zohra"
+SENDER_ADDRESS = "Via Fonte a Collina 147"
+SENDER_PHONE = "+39 371 477 3249"
+
+# ========== Receiver Details ==========
+RECEIVER_NAME = "Bouhafa Mbarka"
+RECEIVER_ADDRESS = "Via Sabotino 11 Casa Lecchio di Reno"
+RECEIVER_PHONE = "+39 347 933 4503"
+
+# ========== Setup ==========
+driver = webdriver.Chrome()
+driver.maximize_window()
+wait = WebDriverWait(driver, 10)
+
+# ========== Login ==========
+driver.get("https://www.dvaexpress.it/")
+time.sleep(3)
+driver.find_element(By.XPATH, "//ul[contains(@class, 'rd-navbar-nav')]/li/a[@href='account' and contains(., 'Login')]").click()
+time.sleep(3)
+driver.find_element(By.ID, "username").send_keys(USERNAME)
+driver.find_element(By.ID, "password").send_keys(PASSWORD, Keys.ENTER)
+time.sleep(12)
+
+# ========== Shipment Dimensions ==========
+wait.until(EC.presence_of_element_located((By.ID, "altezza"))).send_keys(HEIGHT)
+driver.find_element(By.ID, "lunghezza").send_keys(LENGTH)
+driver.find_element(By.ID, "larghezza").send_keys(WIDTH)
+driver.find_element(By.ID, "colli").send_keys(PIECES)
+driver.find_element(By.ID, "peso").send_keys(WEIGHT)
+time.sleep(4)
+wait.until(EC.element_to_be_clickable((By.ID, "btn_aggiungi"))).click()
+time.sleep(10)
+
+# ========== Destination ==========
+wait.until(EC.element_to_be_clickable((By.ID, "select2-country1-container"))).click()
+wait.until(EC.element_to_be_clickable((By.XPATH, f"//li[normalize-space()='{DEST_COUNTRY}']"))).click()
+time.sleep(4)
+driver.find_element(By.ID, "cap1").send_keys(DEST_ZIP)
+time.sleep(5)
+
+# After entering cap1 and cap2
+
+wait.until(EC.element_to_be_clickable(
+    (By.XPATH, "//span[@id='select2-localita1-container']")
+)).click()
+
+search_box = wait.until(EC.presence_of_element_located(
+    (By.XPATH, "//input[@class='select2-search__field']")
+))
+search_box.clear()
+search_box.send_keys(LOCALITA_KEYWORD)
+
+wait.until(EC.element_to_be_clickable(
+    (By.XPATH, f"//li[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '{LOCALITA_KEYWORD.lower()}')]")
+)).click()
+
+
+
+# ========== Departure ==========
+driver.find_element(By.ID, "cap2").send_keys(DEP_ZIP)
+time.sleep(5)
+
+wait.until(EC.element_to_be_clickable(
+    (By.XPATH, "//span[@id='select2-localita2-container']")
+)).click()
+
+search_box = wait.until(EC.presence_of_element_located(
+    (By.XPATH, "//input[@class='select2-search__field']")
+))
+search_box.clear()
+search_box.send_keys(LOCALITA_KEYWORD)
+
+wait.until(EC.element_to_be_clickable(
+    (By.XPATH, f"//li[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '{LOCALITA_KEYWORD.lower()}')]")
+)).click()
+
+
+
+# ========== Proceed to Courier ==========
+driver.find_element(By.ID, "btn_procedi_api").click()
+time.sleep(10)
+
+# ========== Courier Selection ==========
+try:
+    radio_blocks = driver.find_elements(By.XPATH, "//div[contains(@class, 'list-item-content-right')]")
+    for block in radio_blocks:
+        try:
+            amount_text = block.find_element(By.XPATH, ".//h3/strong").text.strip()
+            amount = float(amount_text.replace(',', '.'))
+            if amount > 4:
+                radio = block.find_element(By.XPATH, ".//input[@type='radio']")
+                driver.execute_script("arguments[0].click();", radio)
+                print(f"Selected courier with amount: {amount}")
+                break
+        except Exception as inner_e:
+            print(f"[Courier Block Error] {inner_e}")
+except Exception as e:
+    print(f"[Courier Selection Error] {e}")
+
+# ========== Sender & Receiver ==========
+try:
+    if driver.find_elements(By.ID, "nominativo1"):
+        wait.until(EC.element_to_be_clickable((By.ID, "nominativo1"))).send_keys(SENDER_NAME)
+        wait.until(EC.element_to_be_clickable((By.ID, "indirizzo1"))).send_keys(SENDER_ADDRESS)
+        wait.until(EC.element_to_be_clickable((By.ID, "telefono12"))).send_keys(SENDER_PHONE)
+        wait.until(EC.element_to_be_clickable((By.ID, "nominativo2"))).send_keys(RECEIVER_NAME)
+        wait.until(EC.element_to_be_clickable((By.ID, "indirizzo2"))).send_keys(RECEIVER_ADDRESS)
+        wait.until(EC.element_to_be_clickable((By.ID, "telefono22"))).send_keys(RECEIVER_PHONE)
+        time.sleep(12)
+    else:
+        print("Sender/Receiver form not found.")
+except Exception as e:
+    print(f"[Sender/Receiver Error] {e}")
+
+# ========== Insurance Button (Scroll & Click) ==========
+try:
+    submit_button = WebDriverWait(driver, 15).until(
+        EC.element_to_be_clickable((By.ID, "btn-acquisto"))
+    )
+    driver.execute_script("arguments[0].scrollIntoView(true);", submit_button)
+    driver.execute_script("arguments[0].click();", submit_button)
+    print("Insurance button clicked.")
+except Exception as e:
+    print(f"[Insurance Button Error] {e}")
+
+# ========== Final Confirmation ==========
+try:
+    confirm_button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'confirm') and contains(text(), 'Sì, procedi senza ritiro')]"))
+    )
+    driver.execute_script("arguments[0].click();", confirm_button)
+    print("Final confirmation completed.")
+except Exception as e:
+    print(f"[Final Confirmation Error] {e}")
+
+# ========== End ==========
+print("Shipment process completed.")
+driver.quit()
+
+
