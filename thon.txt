@@ -7,3 +7,66 @@ Fisher Yu
 Yue Zhao
 Morgan Ware
 Xiaoqing Song
+
+
+
+
+We create a 2D or simple 3D puzzle adventure game with basic graphics:
+
+Player moves a character in a maze
+
+Collects coins, keys, or objects
+
+Avoids simple obstacles (like moving blocks or traps)
+
+The game includes visual elements such as:
+
+Player sprite or model
+
+Walls, doors, objects, collectible items
+
+Simple animations for movement and interactions
+
+We collect or use a dataset of player interactions, for example:
+
+Which paths players chose
+
+Which doors they opened
+
+How long they took to make a move
+
+Objects collected
+
+Wins or failures
+
+Each row in the dataset represents one action a player took in the game.
+
+We feed this dataset to an LLM so it can learn patterns of player behaviour, such as:
+
+“Players tend to choose the left path first.”
+
+“Players hesitate near locked doors.”
+
+“Collecting a key first increases success rate.”
+
+The LLM does not control the game fully — it predicts player decisions and suggests strategies.
+
+During gameplay, the player’s real-time actions are logged, just like the dataset.
+
+The LLM reads these logs and predicts likely next moves or provides small adaptive hints, for example:
+
+Highlight the optimal path
+
+Flash a key that is needed
+
+Suggest avoiding a trap
+
+The game visually updates based on LLM suggestions, making it feel adaptive and intelligent:
+
+Buttons or doors highlighted
+
+Arrows or visual cues
+
+Object glows or flashes
+
+The final result is a visually engaging adaptive puzzle game, where an LLM trained on player data makes the experience dynamic, challenging, and personalized, without requiring extremely high-end graphics or complex game engines.
